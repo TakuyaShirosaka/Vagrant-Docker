@@ -1,0 +1,49 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure(2) do |config|
+
+  config.vm.box = "centos/7"
+  
+  #bridgeオプションは人によって違うため要注意
+  config.vm.network "public_network", ip: "192.168.33.10", bridge: 'Intel(R) Wireless-AC 9560'
+
+  config.vm.provider "virtualbox" do |vb|
+     vb.name = "test_vm"
+     vb.cpus = 2
+     vb.gui = true
+     vb.memory = "4096"
+     vb.customize [
+       "modifyvm", :id,
+       "--clipboard", "bidirectional",
+       "--draganddrop", "bidirectional",
+     ]
+  end
+
+  config.vm.provision "docker"
+
+  # docker-composeのインストール
+  $get_compose = <<-'EOF'
+  sudo curl -L "https://github.com/docker/compose/releases/download/1.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+  sudo chmod +x /usr/local/bin/docker-compose
+  EOF
+  config.vm.provision "shell", inline: $get_compose
+
+  config.vm.provision "shell", inline: <<-SHELL
+      sudo yum -y groupinstall "GNOME Desktop"
+      sudo systemctl set-default graphical.target
+      sudo localectl set-locale LANG=ja_JP.UTF-8
+      sudo curl https://intoli.com/install-google-chrome.sh | bash
+      sudo yum -y install bzip2
+      sudo yum -y install gcc
+      sudo yum -y install kernel-devel
+      sudo yum -y install "Input Methods"
+      sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
+      sudo sh -c 'echo -e "[code]\nname=Visual Studio Code\nbaseurl=https://packages.microsoft.com/yumrepos/vscode\nenabled=1\ngpgcheck=1\ngpgkey=https://packages.microsoft.com/keys/microsoft.asc" > /etc/yum.repos.d/vscode.repo'
+      sudo yum -y install code
+      sudo yum install git-all
+      sudo yum install nodejs
+      sudo yum install npm
+      sudo reboot
+  SHELL
+end
