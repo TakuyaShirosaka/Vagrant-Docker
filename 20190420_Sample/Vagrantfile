@@ -7,7 +7,8 @@ Vagrant.configure(2) do |config|
   
   #bridgeオプションは人によって違うため要注意
   config.vm.network "public_network", ip: "192.168.33.10", bridge: 'Intel(R) Wireless-AC 9560'
-
+  config.vm.synced_folder "./data", "/vagrant"
+  
   config.vm.provider "virtualbox" do |vb|
      vb.name = "test_vm"
      vb.cpus = 2
